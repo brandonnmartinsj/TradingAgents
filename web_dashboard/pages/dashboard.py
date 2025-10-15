@@ -7,6 +7,11 @@ import plotly.express as px
 from typing import List, Dict
 import yfinance as yf
 from datetime import datetime, timedelta
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from utils.logo_utils import display_ticker_with_logo, create_ticker_badge
 
 
 def render_decision_badge(decision: str):
@@ -156,7 +161,8 @@ def render(loader):
         col_idx = idx % 3
         with cols[col_idx]:
             with st.container():
-                st.markdown(f"#### {summary['ticker']}")
+                ticker_html = display_ticker_with_logo(summary['ticker'], size=24)
+                st.markdown(f"<h4>{ticker_html}</h4>", unsafe_allow_html=True)
 
                 decision = summary['latest_decision']
                 if decision:
@@ -177,12 +183,17 @@ def render(loader):
     selected_ticker = st.selectbox("Select Ticker for Detailed View", tickers)
 
     if selected_ticker:
+        ticker_badge_html = create_ticker_badge(selected_ticker)
+        st.markdown(ticker_badge_html, unsafe_allow_html=True)
+        st.markdown("")
+
         tab1, tab2, tab3, tab4 = st.tabs(["📊 Charts", "📉 Technical Indicators", "📰 News", "📋 Fundamentals"])
 
         latest_date = loader.get_latest_date(selected_ticker)
 
         with tab1:
-            st.subheader(f"Real-Time Price Data for {selected_ticker}")
+            ticker_display = display_ticker_with_logo(selected_ticker, size=20)
+            st.markdown(f"<h3>Real-Time Price Data for {ticker_display}</h3>", unsafe_allow_html=True)
 
             with st.spinner("Fetching real-time data..."):
                 hist_data, stock_info = fetch_stock_data(selected_ticker, period="1mo")
@@ -228,7 +239,8 @@ def render(loader):
                 st.dataframe(df, use_container_width=True, hide_index=True)
 
         with tab2:
-            st.subheader(f"Technical Indicators for {selected_ticker}")
+            ticker_display = display_ticker_with_logo(selected_ticker, size=20)
+            st.markdown(f"<h3>Technical Indicators for {ticker_display}</h3>", unsafe_allow_html=True)
 
             if latest_date:
                 market_report = loader.read_report(selected_ticker, latest_date, "market_report")
@@ -252,7 +264,8 @@ def render(loader):
                     st.warning("Market report not available.")
 
         with tab3:
-            st.subheader(f"News Sources for {selected_ticker}")
+            ticker_display = display_ticker_with_logo(selected_ticker, size=20)
+            st.markdown(f"<h3>News Sources for {ticker_display}</h3>", unsafe_allow_html=True)
 
             if latest_date:
                 news_report = loader.read_report(selected_ticker, latest_date, "news_report")
@@ -271,7 +284,8 @@ def render(loader):
                     st.warning("News report not available.")
 
         with tab4:
-            st.subheader(f"Fundamental Metrics for {selected_ticker}")
+            ticker_display = display_ticker_with_logo(selected_ticker, size=20)
+            st.markdown(f"<h3>Fundamental Metrics for {ticker_display}</h3>", unsafe_allow_html=True)
 
             if latest_date:
                 fundamentals_report = loader.read_report(selected_ticker, latest_date, "fundamentals_report")

@@ -11,6 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.export_utils import prepare_export_data
+from utils.logo_utils import display_ticker_with_logo
 
 
 def create_price_comparison_chart(tickers: list, period: str = "1mo"):
@@ -160,6 +161,11 @@ def render(loader):
             df = pd.DataFrame(comparison_data)
 
             st.subheader("Summary Table")
+
+            for ticker in selected_tickers:
+                ticker_html = display_ticker_with_logo(ticker, size=16)
+                st.markdown(ticker_html, unsafe_allow_html=True)
+
             st.dataframe(df, use_container_width=True, hide_index=True)
 
             col1, col2 = st.columns(2)

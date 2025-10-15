@@ -1,0 +1,23 @@
+{
+  "theme": "light",
+  "refresh_interval": 60,
+  "default_currency": "USD",
+  "default_period": "1mo",
+  "show_news": true,
+  "show_technical_indicators": true,
+  "max_tickers_display": 10,
+  "enable_notifications": false,
+  "api_keys": {
+    "alpha_vantage": "",
+    "news_api": ""
+  },
+  "colors": {
+    "buy": "#10b981",
+    "hold": "#f59e0b",
+    "sell": "#ef4444"
+  },
+  "data_source": "Alpha Vantage",
+  "cache_duration": 15,
+  "export_format": "CSV",
+  "include_metadata": true
+}
