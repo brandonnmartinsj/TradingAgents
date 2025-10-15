@@ -149,6 +149,9 @@ class ResultsLoader:
         patterns = [
             r'FINAL TRANSACTION PROPOSAL:\s*\*\*(BUY|HOLD|SELL)\*\*',
             r'FINAL TRANSACTION PROPOSAL:\s*(BUY|HOLD|SELL)',
+            r'\*\*Final Recommendation:\s*(BUY|HOLD|SELL)',
+            r'Final Recommendation:\s*\*\*(BUY|HOLD|SELL)\*\*',
+            r'\*\*Decision:\*\*\s*\*\*(BUY|HOLD|SELL)',
             r'Decision:\s*\*\*(BUY|HOLD|SELL)\*\*',
             r'\*\*_(BUY|HOLD|SELL)_\*\*'
         ]
