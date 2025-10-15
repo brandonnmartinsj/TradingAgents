@@ -145,15 +145,27 @@ class ResultsLoader:
         if not content:
             return None
 
-        # Look for decision patterns
+        # Look for decision patterns - ordered from most specific to most general
         patterns = [
+            # Standard formats
             r'FINAL TRANSACTION PROPOSAL:\s*\*\*(BUY|HOLD|SELL)\*\*',
             r'FINAL TRANSACTION PROPOSAL:\s*(BUY|HOLD|SELL)',
+            r'\*\*Final Recommendation:\*\*\s*\*\*(BUY|HOLD|SELL)\*\*',
             r'\*\*Final Recommendation:\s*(BUY|HOLD|SELL)',
             r'Final Recommendation:\s*\*\*(BUY|HOLD|SELL)\*\*',
             r'\*\*Decision:\*\*\s*\*\*(BUY|HOLD|SELL)',
             r'Decision:\s*\*\*(BUY|HOLD|SELL)\*\*',
-            r'\*\*_(BUY|HOLD|SELL)_\*\*'
+            r'\*\*_(BUY|HOLD|SELL)_\*\*',
+            # Additional formats found in reports
+            r'\*\*Decision:\s*(BUY|HOLD|SELL)\*\*',
+            r'Decision:\s*(BUY|HOLD|SELL)',
+            r'\*\*Final Decision:\*\*\s*\*\*(BUY|HOLD|SELL)',
+            r'Final Decision:\s*\*\*(BUY|HOLD|SELL)',
+            r'\*\*Recommendation:\*\*\s*\*\*(BUY|HOLD|SELL)\*\*',
+            r'Recommendation:\s*\*\*(BUY|HOLD|SELL)\*\*',
+            # Catch patterns with extra text after decision
+            r'\*\*Final Decision:\*\*\s*\*\*(HOLD|BUY|SELL)\s+\w+',
+            r'Final Decision:\s*\*\*(HOLD|BUY|SELL)\s+\w+',
         ]
 
         for pattern in patterns:
