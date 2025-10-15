@@ -291,12 +291,49 @@ def render(loader):
     # Sidebar controls
     st.sidebar.markdown("### 🎛️ Controls")
 
-    # Get available tickers
-    tickers = loader.get_available_tickers()
-    if not tickers:
-        tickers = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA']
+    # Get available tickers from results + popular tickers
+    results_tickers = loader.get_available_tickers()
 
-    selected_ticker = st.sidebar.selectbox("Select Ticker", tickers)
+    # Popular tickers commonly discussed on Reddit
+    popular_tickers = [
+        'AAPL', 'MSFT', 'GOOGL', 'GOOG', 'AMZN', 'META', 'TSLA', 'NVDA',
+        'AMD', 'INTC', 'NFLX', 'DIS', 'AVGO', 'JPM', 'V', 'MA',
+        'WMT', 'BAC', 'COIN', 'PLTR', 'GME', 'AMC', 'BB', 'BBBY',
+        'SPY', 'QQQ', 'SOFI', 'RIVN', 'LCID', 'NIO', 'BABA',
+        'PETR4.SA', 'VALE3', 'ITUB4', 'BBDC4'  # Brazilian stocks
+    ]
+
+    # Combine and deduplicate
+    all_tickers = list(set(results_tickers + popular_tickers))
+    all_tickers.sort()
+
+    if not all_tickers:
+        all_tickers = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA']
+
+    # Ticker selection with custom input option
+    ticker_input_method = st.sidebar.radio(
+        "Ticker Selection",
+        ["Select from List", "Enter Custom Ticker"],
+        horizontal=True
+    )
+
+    if ticker_input_method == "Select from List":
+        selected_ticker = st.sidebar.selectbox(
+            "Select Ticker",
+            all_tickers,
+            index=all_tickers.index('AAPL') if 'AAPL' in all_tickers else 0
+        )
+    else:
+        selected_ticker = st.sidebar.text_input(
+            "Enter Ticker Symbol",
+            value="AAPL",
+            max_chars=10,
+            help="Enter any ticker symbol (e.g., AAPL, TSLA, GME)"
+        ).upper().strip()
+
+        if not selected_ticker:
+            st.sidebar.warning("Please enter a ticker symbol")
+            return
 
     time_filters = {
         'Past Hour': 'hour',
