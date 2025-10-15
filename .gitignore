@@ -11,3 +11,6 @@ eval_data/
 .env
 .claude/
 comands.txt
+
+# Web dashboard settings with API keys
+web_dashboard/settings.json

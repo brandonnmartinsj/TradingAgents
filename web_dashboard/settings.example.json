@@ -8,15 +8,15 @@
   "max_tickers_display": 10,
   "enable_notifications": false,
   "api_keys": {
-    "alpha_vantage": "",
-    "news_api": ""
+    "alpha_vantage": "YOUR_ALPHA_VANTAGE_KEY_HERE",
+    "news_api": "YOUR_NEWS_API_KEY_HERE"
   },
   "colors": {
     "buy": "#10b981",
     "hold": "#f59e0b",
     "sell": "#ef4444"
   },
-  "data_source": "Alpha Vantage",
+  "data_source": "Yahoo Finance",
   "cache_duration": 15,
   "export_format": "CSV",
   "include_metadata": true
