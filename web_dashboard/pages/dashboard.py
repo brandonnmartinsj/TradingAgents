@@ -12,6 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.logo_utils import display_ticker_with_logo, create_ticker_badge
+from utils.news_utils import fetch_all_news, render_news_card, get_sentiment_emoji
 
 
 def render_decision_badge(decision: str):
@@ -265,23 +266,105 @@ def render(loader):
 
         with tab3:
             ticker_display = display_ticker_with_logo(selected_ticker, size=20)
-            st.markdown(f"<h3>News Sources for {ticker_display}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3>News for {ticker_display}</h3>", unsafe_allow_html=True)
 
-            if latest_date:
-                news_report = loader.read_report(selected_ticker, latest_date, "news_report")
-                if news_report:
-                    news_sources = loader.extract_news_sources(news_report)
+            news_source = st.radio(
+                "News Source",
+                ["📡 Real-Time API News", "📋 Analysis Report News"],
+                horizontal=True
+            )
 
-                    if news_sources:
-                        for news in news_sources:
-                            with st.expander(f"📰 {news['topic']}", expanded=False):
-                                st.markdown(f"**Details:** {news['details']}")
-                                st.markdown(f"**Source:** [{news['source_name']}]({news['source_url']})")
-                                st.link_button("Read Full Article", news['source_url'])
-                    else:
-                        st.info("No news sources found in the report.")
+            if news_source == "📡 Real-Time API News":
+                settings_file = Path(__file__).parent.parent / "settings.json"
+                newsapi_key = None
+                alphavantage_key = None
+
+                if settings_file.exists():
+                    import json
+                    try:
+                        with open(settings_file, 'r') as f:
+                            settings = json.load(f)
+                            newsapi_key = settings.get('api_keys', {}).get('news_api')
+                            alphavantage_key = settings.get('api_keys', {}).get('alpha_vantage')
+                    except Exception:
+                        pass
+
+                if not newsapi_key and not alphavantage_key:
+                    st.warning("⚠️ No API keys configured. Please add NewsAPI or Alpha Vantage API key in Settings page to fetch real-time news.")
+                    st.info("💡 Go to Settings → API Keys to configure your keys.")
                 else:
-                    st.warning("News report not available.")
+                    with st.spinner("Fetching latest news..."):
+                        news_articles = fetch_all_news(selected_ticker, newsapi_key, alphavantage_key)
+
+                    if news_articles:
+                        col1, col2 = st.columns([3, 1])
+
+                        with col1:
+                            st.markdown(f"**{len(news_articles)} articles found**")
+
+                        with col2:
+                            sentiment_filter = st.selectbox(
+                                "Filter",
+                                ["All", "🟢 Positive", "⚪ Neutral", "🔴 Negative"],
+                                label_visibility="collapsed"
+                            )
+
+                        filtered_articles = news_articles
+
+                        if sentiment_filter != "All":
+                            sentiment_map = {
+                                "🟢 Positive": "positive",
+                                "⚪ Neutral": "neutral",
+                                "🔴 Negative": "negative"
+                            }
+                            target_sentiment = sentiment_map[sentiment_filter]
+                            filtered_articles = [a for a in news_articles if a.get('sentiment') == target_sentiment]
+
+                        if filtered_articles:
+                            sentiment_counts = {}
+                            for article in news_articles:
+                                sent = article.get('sentiment', 'neutral')
+                                sentiment_counts[sent] = sentiment_counts.get(sent, 0) + 1
+
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("🟢 Positive", sentiment_counts.get('positive', 0))
+                            with col2:
+                                st.metric("⚪ Neutral", sentiment_counts.get('neutral', 0))
+                            with col3:
+                                st.metric("🔴 Negative", sentiment_counts.get('negative', 0))
+
+                            st.markdown("---")
+
+                            for article in filtered_articles[:15]:
+                                render_news_card(article, show_description=True)
+                        else:
+                            st.info("No news found matching the selected filter.")
+                    else:
+                        st.info("No recent news found for this ticker.")
+
+            else:
+                if latest_date:
+                    news_report = loader.read_report(selected_ticker, latest_date, "news_report")
+                    if news_report:
+                        news_sources = loader.extract_news_sources(news_report)
+
+                        if news_sources:
+                            st.markdown(f"**{len(news_sources)} sources from analysis report**")
+                            st.markdown("---")
+
+                            for news in news_sources:
+                                with st.expander(f"📰 {news['topic']}", expanded=False):
+                                    st.markdown(f"**Details:** {news['details']}")
+                                    st.markdown(f"**Source:** [{news['source_name']}]({news['source_url']})")
+                                    if news['source_url']:
+                                        st.link_button("Read Full Article", news['source_url'])
+                        else:
+                            st.info("No news sources found in the report.")
+                    else:
+                        st.warning("News report not available.")
+                else:
+                    st.warning("No analysis report available for this ticker.")
 
         with tab4:
             ticker_display = display_ticker_with_logo(selected_ticker, size=20)
