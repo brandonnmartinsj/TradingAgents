@@ -58,7 +58,7 @@ def render(loader):
 
     settings = st.session_state.settings
 
-    tab1, tab2, tab3, tab4 = st.tabs(["🎨 Display", "📊 Data", "🔔 Notifications", "🔑 API Keys"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🎨 Display", "📊 Data", "🔔 Notifications", "🔑 API Keys", "🤖 Reddit"])
 
     with tab1:
         st.subheader("Display Settings")
@@ -283,8 +283,138 @@ def render(loader):
 
         settings['api_keys']['news_api'] = news_api_key
 
+        st.markdown("#### Reddit API")
+        st.markdown("Get credentials at: https://www.reddit.com/prefs/apps")
+
+        reddit_client_id = st.text_input(
+            "Client ID",
+            value=settings.get('api_keys', {}).get('reddit_client_id', ''),
+            type="password",
+            help="Your Reddit app client ID"
+        )
+        settings['api_keys']['reddit_client_id'] = reddit_client_id
+
+        reddit_client_secret = st.text_input(
+            "Client Secret",
+            value=settings.get('api_keys', {}).get('reddit_client_secret', ''),
+            type="password",
+            help="Your Reddit app client secret"
+        )
+        settings['api_keys']['reddit_client_secret'] = reddit_client_secret
+
+        reddit_user_agent = st.text_input(
+            "User Agent",
+            value=settings.get('api_keys', {}).get('reddit_user_agent', 'TradingAgents/1.0'),
+            help="User agent string for Reddit API"
+        )
+        settings['api_keys']['reddit_user_agent'] = reddit_user_agent
+
         st.markdown("---")
         st.warning("⚠️ Keep your API keys secure. Never share them publicly.")
+
+    with tab5:
+        st.subheader("Reddit Sentiment Settings")
+
+        reddit_enabled = st.checkbox(
+            "Enable Reddit Sentiment Analysis",
+            value=settings.get('reddit', {}).get('enabled', True),
+            help="Enable real-time sentiment analysis from Reddit"
+        )
+
+        if 'reddit' not in settings:
+            settings['reddit'] = {}
+
+        settings['reddit']['enabled'] = reddit_enabled
+
+        if reddit_enabled:
+            st.markdown("#### Subreddits")
+            st.markdown("Select which subreddits to monitor for sentiment analysis")
+
+            available_subs = {
+                'wallstreetbets': 'r/wallstreetbets (15M members)',
+                'stocks': 'r/stocks (6M members)',
+                'investing': 'r/investing (2M members)',
+                'StockMarket': 'r/StockMarket (2M members)',
+                'options': 'r/options (400K members)',
+                'pennystocks': 'r/pennystocks (300K members)'
+            }
+
+            current_subs = settings.get('reddit', {}).get('subreddits', ['wallstreetbets', 'stocks', 'investing'])
+            selected_subs_display = [f"{sub} ({available_subs[sub]})" for sub in current_subs if sub in available_subs]
+
+            selected_subs = st.multiselect(
+                "Active Subreddits",
+                [f"{k} ({v})" for k, v in available_subs.items()],
+                default=selected_subs_display
+            )
+
+            settings['reddit']['subreddits'] = [s.split(' ')[0] for s in selected_subs]
+
+            st.markdown("#### Analysis Settings")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                posts_per_sub = st.slider(
+                    "Posts per Subreddit",
+                    min_value=10,
+                    max_value=100,
+                    value=settings.get('reddit', {}).get('posts_per_subreddit', 50),
+                    step=10,
+                    help="Number of posts to fetch per subreddit"
+                )
+                settings['reddit']['posts_per_subreddit'] = int(posts_per_sub)
+
+                time_filter = st.selectbox(
+                    "Default Time Filter",
+                    ["hour", "day", "week", "month"],
+                    index=["hour", "day", "week", "month"].index(settings.get('reddit', {}).get('time_filter', 'day'))
+                )
+                settings['reddit']['time_filter'] = time_filter
+
+            with col2:
+                cache_ttl = st.number_input(
+                    "Cache Duration (seconds)",
+                    min_value=300,
+                    max_value=3600,
+                    value=settings.get('reddit', {}).get('cache_ttl', 900),
+                    step=300,
+                    help="How long to cache Reddit data"
+                )
+                settings['reddit']['cache_ttl'] = int(cache_ttl)
+
+                min_upvotes = st.number_input(
+                    "Minimum Upvotes",
+                    min_value=0,
+                    max_value=100,
+                    value=settings.get('reddit', {}).get('min_upvotes', 10),
+                    step=5,
+                    help="Filter posts with fewer upvotes"
+                )
+                settings['reddit']['min_upvotes'] = int(min_upvotes)
+
+            st.markdown("#### Sentiment Engine")
+
+            sentiment_method = st.selectbox(
+                "Sentiment Analysis Method",
+                ["vader", "textblob", "hybrid"],
+                index=["vader", "textblob", "hybrid"].index(settings.get('reddit', {}).get('sentiment_method', 'vader')),
+                help="VADER is optimized for social media text"
+            )
+            settings['reddit']['sentiment_method'] = sentiment_method
+
+            show_trending = st.checkbox(
+                "Show Trending Tickers",
+                value=settings.get('reddit', {}).get('show_trending', True),
+                help="Display trending tickers on Reddit"
+            )
+            settings['reddit']['show_trending'] = show_trending
+
+            st.markdown("---")
+            st.info("💡 Sentiment analysis uses natural language processing to gauge market mood from Reddit discussions.")
+
+        else:
+            st.info("Reddit sentiment analysis is currently disabled. Enable it to start analyzing social media sentiment.")
 
     st.markdown("---")
 

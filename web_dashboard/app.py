@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from web_dashboard.utils.data_loader import ResultsLoader
-from web_dashboard.pages import dashboard, report_viewer, comparison, portfolio, alerts, analytics, settings
+from web_dashboard.pages import dashboard, report_viewer, comparison, portfolio, alerts, analytics, settings, reddit_sentiment
 
 # Page configuration
 st.set_page_config(
@@ -85,6 +85,7 @@ def main():
             "💼 Portfolio",
             "🔔 Alerts",
             "📈 Analytics",
+            "🤖 Reddit Sentiment",
             "⚙️ Settings"
         ],
         label_visibility="collapsed"
@@ -118,6 +119,8 @@ def main():
         alerts.render(loader)
     elif page == "📈 Analytics":
         analytics.render(loader)
+    elif page == "🤖 Reddit Sentiment":
+        reddit_sentiment.render(loader)
     elif page == "⚙️ Settings":
         settings.render(loader)
 
