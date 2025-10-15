@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from web_dashboard.utils.data_loader import ResultsLoader
-from web_dashboard.pages import dashboard, report_viewer, comparison
+from web_dashboard.pages import dashboard, report_viewer, comparison, portfolio, alerts, analytics, settings
 
 # Page configuration
 st.set_page_config(
@@ -78,7 +78,15 @@ def main():
 
     page = st.sidebar.radio(
         "Select Page",
-        ["🏠 Dashboard", "📄 Report Viewer", "🔍 Comparison"],
+        [
+            "🏠 Dashboard",
+            "📄 Report Viewer",
+            "🔍 Comparison",
+            "💼 Portfolio",
+            "🔔 Alerts",
+            "📈 Analytics",
+            "⚙️ Settings"
+        ],
         label_visibility="collapsed"
     )
 
@@ -104,6 +112,14 @@ def main():
         report_viewer.render(loader)
     elif page == "🔍 Comparison":
         comparison.render(loader)
+    elif page == "💼 Portfolio":
+        portfolio.render(loader)
+    elif page == "🔔 Alerts":
+        alerts.render(loader)
+    elif page == "📈 Analytics":
+        analytics.render(loader)
+    elif page == "⚙️ Settings":
+        settings.render(loader)
 
     # Footer
     st.sidebar.markdown("---")
