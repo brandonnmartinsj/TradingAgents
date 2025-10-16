@@ -376,3 +376,60 @@ class ResultsLoader:
             })
 
         return history
+
+    def delete_analysis(self, ticker: str, date: str) -> bool:
+        """Delete all reports for a specific ticker and date
+
+        Args:
+            ticker: Stock ticker symbol
+            date: Date in YYYY-MM-DD format
+
+        Returns:
+            True if deletion was successful, False otherwise
+        """
+        analysis_dir = self.results_dir / ticker / date
+
+        if not analysis_dir.exists():
+            return False
+
+        try:
+            import shutil
+            shutil.rmtree(analysis_dir)
+
+            # Check if ticker directory is now empty and remove if so
+            ticker_dir = self.results_dir / ticker
+            if ticker_dir.exists() and not any(ticker_dir.iterdir()):
+                ticker_dir.rmdir()
+
+            return True
+        except Exception:
+            return False
+
+    def delete_specific_report(
+        self,
+        ticker: str,
+        date: str,
+        report_type: str,
+        language: str = "en"
+    ) -> bool:
+        """Delete a specific report file
+
+        Args:
+            ticker: Stock ticker symbol
+            date: Date in YYYY-MM-DD format
+            report_type: Type of report to delete
+            language: Language code
+
+        Returns:
+            True if deletion was successful, False otherwise
+        """
+        file_path = self.get_report_path(ticker, date, report_type, language)
+
+        if file_path is None or not file_path.exists():
+            return False
+
+        try:
+            file_path.unlink()
+            return True
+        except Exception:
+            return False
