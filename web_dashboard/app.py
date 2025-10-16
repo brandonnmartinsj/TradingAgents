@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from web_dashboard.utils.data_loader import ResultsLoader
-from web_dashboard.pages import dashboard, report_viewer, comparison, portfolio, alerts, analytics, settings, reddit_sentiment
+from web_dashboard.pages import dashboard, report_viewer, comparison, portfolio, alerts, analytics, settings, reddit_sentiment, run_analysis
 
 # Page configuration
 st.set_page_config(
@@ -80,6 +80,7 @@ def main():
         "Select Page",
         [
             "🏠 Dashboard",
+            "🚀 Run Analysis",
             "📄 Report Viewer",
             "🔍 Comparison",
             "💼 Portfolio",
@@ -94,16 +95,20 @@ def main():
     # Initialize data loader
     try:
         loader = ResultsLoader()
+        has_results = bool(loader.get_available_tickers())
+    except FileNotFoundError:
+        loader = None
+        has_results = False
 
-        # Check if results exist
-        if not loader.get_available_tickers():
-            st.error("⚠️ No results found! Please run TradingAgents at least once to generate reports.")
-            st.info("Run: `python -m cli.main` to generate trading analysis results.")
-            return
+    # Special handling for Run Analysis page - always accessible
+    if page == "🚀 Run Analysis":
+        run_analysis.render(loader)
+        return
 
-    except FileNotFoundError as e:
-        st.error(f"⚠️ {str(e)}")
-        st.info("Make sure you're running this from the TradingAgents project directory.")
+    # For other pages, check if results exist
+    if not has_results:
+        st.error("⚠️ No results found! Please run TradingAgents at least once to generate reports.")
+        st.info("💡 Tip: Use the '🚀 Run Analysis' page to generate your first trading analysis!")
         return
 
     # Route to appropriate page
